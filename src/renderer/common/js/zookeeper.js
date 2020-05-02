@@ -1,20 +1,54 @@
+var zkClientMap = new Map()
 var Zookeeper = require('node-zookeeper-client')
-var CONNECTION_STRING = "127.0.0.1:2181"
 var OPTIONS = {
-    sessionTimeout: 5000
+    sessionTimeout: 30000
 }
-var zk = Zookeeper.createClient(CONNECTION_STRING, OPTIONS)
-zk.connect()
 
 function connectZK(callback) {
-    zk.on('connected', function () {
-        console.log("connected zk:", zk)
-        const newChild = { label: CONNECTION_STRING, children: [], path: '/' }
-        listChildren(zk,'/',newChild,callback,newChild)
-    });
+    var connects = localStorage.getItem('zkNames')
+    if (connects != null && '' != connects) {
+        if (connects.indexOf('$') == -1) {
+            connectZKByName(connects, callback)
+        } else {
+            connects.split('$').forEach(element => {
+                if (element != null && '' != element) {
+                    var zk = zkClientMap.get(element)
+                    if (zk == null) {
+                        zk = Zookeeper.createClient(element, OPTIONS)
+                        zkClientMap.set(element, zk)
+                    }
+                    zk.connect()
+                    zk.on('connected', function () {
+                        console.log("connected zk:", zk)
+                        const newChild = { label: element, children: [], path: '/', zkName: element }
+                        listChildren(zk, '/', newChild, callback, newChild, element)
+                    });
+                }
+            });
+        }
+    }
 }
 
-function listChildren(client, path, map,callback,ret) {
+function connectZKByName(zkName, callback) {
+    var CONNECTION_STRING = zkName
+    var zk = zkClientMap.get(zkName)
+    if (zk == null) {
+        zk = Zookeeper.createClient(CONNECTION_STRING, OPTIONS)
+        zkClientMap.set(CONNECTION_STRING, zk)
+        zk.connect()
+        zk.on('connected', function () {
+            console.log("connectZKByName connected zk:", zk)
+            const newChild = { label: CONNECTION_STRING, children: [], path: '/', zkName: zkName }
+            listChildren(zk, '/', newChild, callback, newChild, zkName)
+        });
+    } else {
+        console.log("connectZKByName connected zk:", zk)
+        const newChild = { label: CONNECTION_STRING, children: [], path: '/', zkName: zkName }
+        listChildren(zk, '/', newChild, callback, newChild, zkName)
+    }
+}
+
+function listChildren(client, path, map, callback, ret, zkName) {
     client.getChildren(
         path,
         function (event) {
@@ -23,18 +57,18 @@ function listChildren(client, path, map,callback,ret) {
         },
         function (error, children, stat) {
             if (error) {
-                console.log('Failed to list children of %s due to: %s.',path,error)
+                console.log('Failed to list children of %s due to: %s.', path, error)
                 return;
             }
-            console.log('Children of %s are: %j.', path, children);
+            //console.log('Children of %s are: %j.', path, children);
             children.forEach(element => {
                 var array = map.children
                 var childPath = path == '/' ? path + element : path + '/' + element
-                const child = { label: element, children: [], path: childPath }
+                const child = { label: element, children: [], path: childPath, zkName: zkName }
                 array.push(child)
-                console.log('parent path is %s', path)
-                console.log('child path is %s', childPath)
-                listChildren(client, childPath, child, callback, ret)
+                //console.log('parent path is %s', path)
+                //console.log('child path is %s', childPath)
+                listChildren(client, childPath, child, callback, ret, zkName)
                 callback(ret)
             });
         }
@@ -58,22 +92,24 @@ function exists(client, path) {
     });
 }
 
-function getNodeData(path,callback) {
-    zk.getData(
-        path,
-        function (event) {
-            console.log('Got event: %s.', event);
-        },
-        function (error, data, stat) {
-            if (error) {
-                console.log(error.stack);
-                return;
+function getNodeData(zkName, path, callback) {
+    var zk = zkClientMap.get(zkName)
+    if (zk != null) {
+        zk.getData(
+            path,
+            function (event) {
+                console.log('Got event: %s.', event);
+            },
+            function (error, data, stat) {
+                if (error) {
+                    console.log(error.stack);
+                    return;
+                }
+                //console.log('Got data: %s', data);
+                callback(data);
             }
-     
-            console.log('Got data: %s', data);
-            callback(data);
-        }
-    );
+        );
+    }
 }
 
 function sleep(d) {
@@ -82,5 +118,6 @@ function sleep(d) {
 
 export default {
     connectZK,
-    getNodeData
+    getNodeData,
+    connectZKByName
 }
