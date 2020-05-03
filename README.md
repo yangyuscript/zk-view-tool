@@ -1,6 +1,26 @@
-# zk-view
+# zk-view-tool
 
-> an electron project for zk view
+> an electron project for viewing node's info of zookeeper
+
+#### 项目背景
+近来研究zookeeper发现没有一款很好用的zookeeper图形化客户端工具，idea中虽然有一款类似的插件，但总感觉会占用太多内存导致电脑变卡，而且不支持多客户端接入。又由于自己之前了解到到electron.js可以基于前端（html+css+js）做桌面软件，于是决定自己做一个桌面软件来使用。
+
+#### 项目技术栈
+- electron.js
+- electron-vue
+- vue.js
+- node-zookeeper-client
+- node.js
+- element-ui
+
+#### 产品功能
+- 接入zk客户端，查看zk上的节点信息，目前仅限于查看功能
+
+#### 效果图展示
+![avatar](https://github.com/yangyuscript/zk-view-tool/tree/master/static/pic.png)
+
+#### 安装包下载
+路径：项目根目录下product文件夹中，dmg为mac安装包，windows下稍后会上传
 
 #### Build Setup
 
