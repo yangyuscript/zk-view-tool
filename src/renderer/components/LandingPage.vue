@@ -11,7 +11,7 @@
             </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
-                <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">
+                <el-button size="mini" @click="refresh(scope.$index, scope.row)">
                   <i class="el-icon-refresh-left"></i>
                 </el-button>
                 <el-button
@@ -105,9 +105,11 @@ export default {
     zk.connectZK(ret => {
       //console.log("this.data length is "+this.data.length)
       if (this.data.length > 0) {
+        var flag = 0;
         this.data.forEach((element, index) => {
           //console.log("element.zkName and ret.zkName is "+element.zkName+' '+ret.zkName)
           if (element.zkName == ret.zkName) {
+            flag = 1;
             //console.log("splice ", ret);
             this.data.splice(index, 1);
             //console.log("lin", this.data);
@@ -115,11 +117,18 @@ export default {
               this.data = new Array();
               //console.log("lin2", this.data);
             }
+            //console.log('ret is :',ret);
             this.data.push(ret);
+            this.data = JSON.parse(JSON.stringify(this.data));
           }
         });
+        if(flag == 0){
+          this.data.push(ret);
+          this.data = JSON.parse(JSON.stringify(this.data));
+        }
       } else {
         this.data.push(ret);
+        this.data = JSON.parse(JSON.stringify(this.data));
       }
     });
     //初始化表格内容
@@ -155,7 +164,7 @@ export default {
   },
   methods: {
     handleNodeClick(data) {
-      console.log(data);
+      console.log('点击node节点获取信息:' + data);
       //console.log(data.path);
       zk.getNodeData(data.zkName, data.path, ret => {
         this.node = data.path;
@@ -165,24 +174,28 @@ export default {
     addZK() {
       console.log("add zk,show setting popup");
     },
-    handleEdit(index, row) {
+    refresh(index, row) {
       //console.log('handleEdit:',index, row);
       zk.connectZKByName(row.zkName, ret => {
         //console.log('refresh:',ret)
         if (this.data.length > 0) {
+          var flag = 0;
           this.data.forEach((element, index) => {
             if (element.zkName == ret.zkName) {
+              flag = 1;
               this.data.splice(index, 1);
-              console.log("splice: ", this.data);
+              //console.log("splice: ", this.data);
               if (this.data == null || this.data.length == 0) {
                 this.data = new Array();
-                console.log("splice2: ", this.data);
+                //console.log("splice2: ", this.data);
               }
               this.data.push(ret);
+              this.data = JSON.parse(JSON.stringify(this.data));
             }
           });
         } else {
           this.data.push(ret);
+          this.data = JSON.parse(JSON.stringify(this.data));
         }
       });
     },
@@ -221,14 +234,27 @@ export default {
           console.log("新配置zk");
           zk.connectZKByName(zkName, ret => {
             if (this.data.length > 0) {
+              var flag = 0;
               this.data.forEach((element, index) => {
                 if (element.zkName == ret.zkName) {
-                  this.data.splice(index, 1, ret);
+                  flag = 1;
+                  this.data.splice(index, 1);
+                  if(this.data.length == 0){
+                    this.data = new Array();
+                  }
+                  this.data.push(ret);
+                  this.data = JSON.parse(JSON.stringify(this.data));
                 }
               });
+              if(flag == 0){
+                this.data.push(ret);
+                this.data = JSON.parse(JSON.stringify(this.data));
+              }
             } else {
               this.data.push(ret);
+              this.data = JSON.parse(JSON.stringify(this.data));
             }
+            console.log("新配置zk后 data is: ",JSON.stringify(this.data));
           });
         } else {
           console.log("error submit!!");

@@ -106,6 +106,10 @@ function getNodeData(zkName, path, callback) {
                     return;
                 }
                 //console.log('Got data: %s', data);
+                //console.log("stat", JSON.stringify(stat))
+                //console.log("stat", stat.czxid.toString('hex'))
+                //console.log("stat", stat.ctime.toString('UTF-8'))
+                //console.log("stat",trans(stat.czxid))
                 callback(data);
             }
         );
