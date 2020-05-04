@@ -20,7 +20,7 @@
 ![avatar](https://github.com/yangyuscript/zk-view-tool/tree/master/static/pic.png)
 
 #### 安装包下载
-路径：项目根目录下product文件夹中，dmg为mac安装包，windows下稍后会上传
+云盘下载：https://pan.baidu.com/s/1mZei2inQrkcpZ5R4STOL5Q    提取码：j03o
 
 #### Build Setup
 
