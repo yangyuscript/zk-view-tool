@@ -20,14 +20,62 @@ function connectZK(callback) {
                     zk.connect()
                     zk.on('connected', function () {
                         console.log("connected zk:", zk)
-                        const newChild = { label: element, children: [], path: '/', zkName: element }
-                        listChildren(zk, '/', newChild, callback, newChild, element)
+                        getTree(zk,element,element,callback)
                     });
                 }
             });
         }
     }
 }
+
+
+function getTree(zk,lableName,zkName,callback) {
+    const newChild = { label: lableName, children: [], path: '/', zkName: zkName }
+    zk.listSubTreeBFS('/', function (error, children) {
+        if (error) {
+            console.log(error.stack);
+            return;
+        }
+        var parentChild = newChild
+        console.log('Children are:', children);
+        children.forEach(childPath => {
+            parentChild = newChild
+            //console.log('xixix:', newChild)
+            var len = childPath.split('/').length
+            //console.log('hehehe', childPath, len)
+            var templen = 0
+            childPath.split('/').forEach(e => {
+                templen++
+                if (e != null && e != '') {
+                    var flag = false
+                    var index = 0
+                    //console.log('hahaha:', childPath, e)
+                    parentChild.children.forEach((c, i) => {
+                        if (c.label == e) {
+                            flag = true
+                            index = i
+                        }
+                    });
+                    console.log('flag', flag, parentChild.children)
+                    if (!flag) { //数组不包含该元素
+                        console.log('不包含元素', e, childPath)
+                        var temp = { label: e, children: [], path: childPath, zkName: zkName }
+                        var i = parentChild.children.push(temp)
+                        parentChild = parentChild.children[i - 1]
+                    } else { //数组包含该元素
+                        console.log('包含元素', e, childPath)
+                        if (parentChild.children != null && parentChild.children.length > 0) {
+                            parentChild = parentChild.children[index]
+                            console.log(parentChild)
+                        }
+                    }
+                }
+            });
+        });
+        callback(newChild)
+    });
+}
+
 
 function connectZKByName(zkName, callback) {
     var CONNECTION_STRING = zkName
@@ -38,13 +86,11 @@ function connectZKByName(zkName, callback) {
         zk.connect()
         zk.on('connected', function () {
             console.log("connectZKByName connected zk:", zk)
-            const newChild = { label: CONNECTION_STRING, children: [], path: '/', zkName: zkName }
-            listChildren(zk, '/', newChild, callback, newChild, zkName)
+            getTree(zk,CONNECTION_STRING,CONNECTION_STRING,callback)
         });
     } else {
         console.log("connectZKByName connected zk:", zk)
-        const newChild = { label: CONNECTION_STRING, children: [], path: '/', zkName: zkName }
-        listChildren(zk, '/', newChild, callback, newChild, zkName)
+        getTree(zk,CONNECTION_STRING,CONNECTION_STRING,callback)
     }
 }
 
