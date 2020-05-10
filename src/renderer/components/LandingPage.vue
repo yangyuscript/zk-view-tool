@@ -281,6 +281,7 @@ export default {
       console.log("更换加载模式");
       localStorage.setItem("loadMode", this.loadMode);
       this.dialogVisible2 = false;
+      this.init();
     },
     init() {
       zk.connectZK(ret => {
@@ -317,6 +318,7 @@ export default {
       if (zks != null && "" != zks) {
         zks.split("$").forEach(element => {
           if (element != null && "" != element) {
+            this.tableData = [];
             var newData = { zkName: element };
             console.log("添加表格行");
             this.tableData.push(newData);

@@ -1,7 +1,7 @@
 var zkClientMap = new Map()
 var Zookeeper = require('node-zookeeper-client')
 var OPTIONS = {
-    sessionTimeout: 30000
+    sessionTimeout: 300000
 }
 
 function connectZK(callback) {
@@ -11,15 +11,19 @@ function connectZK(callback) {
             connectZKByName(connects, callback)
         } else {
             connects.split('$').forEach(element => {
+                console.log("split zk address is ",element)
                 if (element != null && '' != element) {
                     var zk = zkClientMap.get(element)
-                    if (zk == null) {
+                    if (zk == undefined) {
                         zk = Zookeeper.createClient(element, OPTIONS)
                         zkClientMap.set(element, zk)
+                        zk.connect()
+                    }else{
+                        console.log(element +" lin2 connected zk:", zk)
+                        getTree(zk, element, element, callback)
                     }
-                    zk.connect()
                     zk.on('connected', function () {
-                        console.log("connected zk:", zk)
+                        console.log(element +" lin connected zk:", zk)
                         getTree(zk, element, element, callback)
                     });
                 }
@@ -173,14 +177,14 @@ function getNodeData(zkName, path, callback) {
                         function (error, children, stat) {
                             if (error) {
                                 console.log('Failed to list children of %s due to: %s.', path, error)
-                                zk = Zookeeper.createClient(zkName, OPTIONS)
-                                zkClientMap.set(zkName, zk)
-                                zk.connect()
-                                zkClientMap.put(zkName,zk)
-                                zk.on('connected', function () {
-                                    console.log("connectZKByName connected zk:", zk)
-                                    getNodeData(zkName,path,callback)
-                                });
+                                // zk = Zookeeper.createClient(zkName, OPTIONS)
+                                // zkClientMap.set(zkName, zk)
+                                // zk.connect()
+                                // zkClientMap.put(zkName,zk)
+                                // zk.on('connected', function () {
+                                //     console.log("connectZKByName connected zk:", zk)
+                                //     getNodeData(zkName,path,callback)
+                                // });
                                 return;
                             }
                             //console.log('Children of %s are: %j.', path, children);
