@@ -20,7 +20,7 @@ function connectZK(callback) {
                     zk.connect()
                     zk.on('connected', function () {
                         console.log("connected zk:", zk)
-                        getTree(zk,element,element,callback)
+                        getTree(zk, element, element, callback)
                     });
                 }
             });
@@ -29,51 +29,56 @@ function connectZK(callback) {
 }
 
 
-function getTree(zk,lableName,zkName,callback) {
+function getTree(zk, lableName, zkName, callback) {
     const newChild = { label: lableName, children: [], path: '/', zkName: zkName }
-    zk.listSubTreeBFS('/', function (error, children) {
-        if (error) {
-            console.log(error.stack);
-            return;
-        }
-        var parentChild = newChild
-        console.log('Children are:', children);
-        children.forEach(childPath => {
-            parentChild = newChild
-            //console.log('xixix:', newChild)
-            var len = childPath.split('/').length
-            //console.log('hehehe', childPath, len)
-            var templen = 0
-            childPath.split('/').forEach(e => {
-                templen++
-                if (e != null && e != '') {
-                    var flag = false
-                    var index = 0
-                    //console.log('hahaha:', childPath, e)
-                    parentChild.children.forEach((c, i) => {
-                        if (c.label == e) {
-                            flag = true
-                            index = i
-                        }
-                    });
-                    console.log('flag', flag, parentChild.children)
-                    if (!flag) { //数组不包含该元素
-                        console.log('不包含元素', e, childPath)
-                        var temp = { label: e, children: [], path: childPath, zkName: zkName }
-                        var i = parentChild.children.push(temp)
-                        parentChild = parentChild.children[i - 1]
-                    } else { //数组包含该元素
-                        console.log('包含元素', e, childPath)
-                        if (parentChild.children != null && parentChild.children.length > 0) {
-                            parentChild = parentChild.children[index]
-                            console.log(parentChild)
+    if ('1' == localStorage.getItem('loadMode')) {
+        zk.listSubTreeBFS('/', function (error, children) {
+            if (error) {
+                console.log(error.stack);
+                return;
+            }
+            var parentChild = newChild
+            console.log('Children are:', children);
+            children.forEach(childPath => {
+                parentChild = newChild
+                //console.log('xixix:', newChild)
+                var len = childPath.split('/').length
+                //console.log('hehehe', childPath, len)
+                var templen = 0
+                childPath.split('/').forEach(e => {
+                    templen++
+                    if (e != null && e != '') {
+                        var flag = false
+                        var index = 0
+                        //console.log('hahaha:', childPath, e)
+                        parentChild.children.forEach((c, i) => {
+                            if (c.label == e) {
+                                flag = true
+                                index = i
+                            }
+                        });
+                        console.log('flag', flag, parentChild.children)
+                        if (!flag) { //数组不包含该元素
+                            console.log('不包含元素', e, childPath)
+                            var temp = { label: e, children: [], path: childPath, zkName: zkName }
+                            var i = parentChild.children.push(temp)
+                            parentChild = parentChild.children[i - 1]
+                        } else { //数组包含该元素
+                            console.log('包含元素', e, childPath)
+                            if (parentChild.children != null && parentChild.children.length > 0) {
+                                parentChild = parentChild.children[index]
+                                console.log(parentChild)
+                            }
                         }
                     }
-                }
+                });
             });
+            callback(newChild)
         });
+    } else {
         callback(newChild)
-    });
+    }
+
 }
 
 
@@ -86,11 +91,11 @@ function connectZKByName(zkName, callback) {
         zk.connect()
         zk.on('connected', function () {
             console.log("connectZKByName connected zk:", zk)
-            getTree(zk,CONNECTION_STRING,CONNECTION_STRING,callback)
+            getTree(zk, CONNECTION_STRING, CONNECTION_STRING, callback)
         });
     } else {
         console.log("connectZKByName connected zk:", zk)
-        getTree(zk,CONNECTION_STRING,CONNECTION_STRING,callback)
+        getTree(zk, CONNECTION_STRING, CONNECTION_STRING, callback)
     }
 }
 
@@ -156,7 +161,47 @@ function getNodeData(zkName, path, callback) {
                 //console.log("stat", stat.czxid.toString('hex'))
                 //console.log("stat", stat.ctime.toString('UTF-8'))
                 //console.log("stat",trans(stat.czxid))
-                callback(data);
+                var map = new Map();
+                map.set('data', data);
+                //若为饿加载模式则，将子节点查询出来插入Tree
+                if ('2' == localStorage.getItem('loadMode')) {
+                    zk.getChildren(
+                        path,
+                        function (event) {
+                            console.log('Got watcher event: %s', event);
+                        },
+                        function (error, children, stat) {
+                            if (error) {
+                                console.log('Failed to list children of %s due to: %s.', path, error)
+                                zk = Zookeeper.createClient(zkName, OPTIONS)
+                                zkClientMap.set(zkName, zk)
+                                zk.connect()
+                                zkClientMap.put(zkName,zk)
+                                zk.on('connected', function () {
+                                    console.log("connectZKByName connected zk:", zk)
+                                    getNodeData(zkName,path,callback)
+                                });
+                                return;
+                            }
+                            //console.log('Children of %s are: %j.', path, children);
+                            var array = new Array()
+                            children.forEach(element => {
+                                var childPath = path == '/' ? path + element : path + '/' + element
+                                const child = { label: element, children: [], path: childPath, zkName: zkName }
+                                array.push(child)
+                                //console.log('parent path is %s', path)
+                                //console.log('child path is %s', childPath)
+                            });
+                            if (array.length > 0) {
+                                map.set('childrenArray', array);
+                                callback(map);
+                            }
+                        }
+                    );
+                } else {
+                    callback(map);
+                }
+
             }
         );
     }
