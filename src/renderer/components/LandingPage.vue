@@ -48,7 +48,7 @@
         <el-main>
           <el-row :gutter="20">
             <el-col :span="24">
-              <div class="myp grid-content bg-purple" style="width:100%;">
+              <div class="myp grid-content bg-purple" style="width:750px;">
                 <p>node：</p>
                 <p>{{ node }}</p>
               </div>
@@ -56,7 +56,7 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="24">
-              <div class="myp grid-content bg-purple" style="height:250px;width:100%;">
+              <div class="myp grid-content bg-purple" style="height:250px;width:750px;">
                 <p>value：</p>
                 <p>{{ value }}</p>
               </div>
@@ -364,6 +364,9 @@ export default {
 }
 .myp {
   display: inline-block;
+  word-wrap:break-word;  
+  word-break:break-all;  
+  overflow: hidden;
 }
 /* .el-table td, .el-table th{
   padding: 0 0;

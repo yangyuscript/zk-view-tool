@@ -160,13 +160,13 @@ function getNodeData(zkName, path, callback) {
                     console.log(error.stack);
                     return;
                 }
-                //console.log('Got data: %s', data);
+                console.log('Got data: %s', data);
                 //console.log("stat", JSON.stringify(stat))
-                //console.log("stat", stat.czxid.toString('hex'))
+                console.log("data hex ", data.toString('UTF-8'))
                 //console.log("stat", stat.ctime.toString('UTF-8'))
                 //console.log("stat",trans(stat.czxid))
                 var map = new Map();
-                map.set('data', data);
+                map.set('data', data.toString('UTF-8'));
                 //若为饿加载模式则，将子节点查询出来插入Tree
                 if ('2' == localStorage.getItem('loadMode')) {
                     zk.getChildren(
@@ -198,8 +198,8 @@ function getNodeData(zkName, path, callback) {
                             });
                             if (array.length > 0) {
                                 map.set('childrenArray', array);
-                                callback(map);
                             }
+                            callback(map);
                         }
                     );
                 } else {
