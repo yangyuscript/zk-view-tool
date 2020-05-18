@@ -316,9 +316,9 @@ export default {
       //初始化表格内容
       var zks = localStorage.getItem("zkNames");
       if (zks != null && "" != zks) {
+        this.tableData = [];
         zks.split("$").forEach(element => {
           if (element != null && "" != element) {
-            this.tableData = [];
             var newData = { zkName: element };
             console.log("添加表格行");
             this.tableData.push(newData);
