@@ -11,19 +11,19 @@ function connectZK(callback) {
             connectZKByName(connects, callback)
         } else {
             connects.split('$').forEach(element => {
-                console.log("split zk address is ",element)
+                console.log("split zk address is ", element)
                 if (element != null && '' != element) {
                     var zk = zkClientMap.get(element)
                     if (zk == undefined) {
                         zk = Zookeeper.createClient(element, OPTIONS)
                         zkClientMap.set(element, zk)
                         zk.connect()
-                    }else{
-                        console.log(element +" lin2 connected zk:", zk)
+                    } else {
+                        console.log(element + " lin2 connected zk:", zk)
                         getTree(zk, element, element, callback)
                     }
                     zk.on('connected', function () {
-                        console.log(element +" lin connected zk:", zk)
+                        console.log(element + " lin connected zk:", zk)
                         getTree(zk, element, element, callback)
                     });
                 }
@@ -160,13 +160,15 @@ function getNodeData(zkName, path, callback) {
                     console.log(error.stack);
                     return;
                 }
-                console.log('Got data: %s', data);
-                //console.log("stat", JSON.stringify(stat))
-                console.log("data hex ", data.toString('UTF-8'))
-                //console.log("stat", stat.ctime.toString('UTF-8'))
-                //console.log("stat",trans(stat.czxid))
                 var map = new Map();
-                map.set('data', data.toString('UTF-8'));
+                if (data != undefined) {
+                    console.log('Got data: %s', data);
+                    //console.log("stat", JSON.stringify(stat))
+                    console.log("data hex ", data.toString('UTF-8'))
+                    //console.log("stat", stat.ctime.toString('UTF-8'))
+                    //console.log("stat",trans(stat.czxid))
+                    map.set('data', data.toString('UTF-8'));
+                }
                 //若为饿加载模式则，将子节点查询出来插入Tree
                 if ('2' == localStorage.getItem('loadMode')) {
                     zk.getChildren(
