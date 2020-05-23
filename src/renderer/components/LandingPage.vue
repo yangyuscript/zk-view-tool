@@ -3,7 +3,7 @@
     <el-header style="border-bottom: 1px solid #eee;height:120px;margin-bottom:5px;overflow:auto;">
       <el-row :gutter="20">
         <el-col :span="23">
-          <el-table :data="tableData" style="width: 100%" size="mini">
+          <el-table :data="tableData" style="width: 100%" size="mini" v-loading="loading">
             <el-table-column label="zk" width="180">
               <template slot-scope="scope">
                 <span style="margin-left: 10px">{{ scope.row.zkName }}</span>
@@ -131,7 +131,8 @@ export default {
         ip: "127.0.0.1",
         port: "2181"
       },
-      loadMode: "1"
+      loadMode: "1",
+      loading: true
     };
   },
   methods: {
@@ -284,33 +285,56 @@ export default {
       this.init();
     },
     init() {
+      const initLoading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+      });
+      var connnectNum = 0;
+      zk.testZKAccess(ret => {
+        connnectNum++;
+        console.log("可连接zk数量: ",connnectNum);
+      });
+      setTimeout(() => {
+        if(connnectNum==0){
+          initLoading.close();
+        }
+      },2000);
+      var realNum = 0;
       zk.connectZK(ret => {
-        //console.log("this.data length is "+this.data.length)
-        if (this.data.length > 0) {
-          var flag = 0;
-          this.data.forEach((element, index) => {
-            //console.log("element.zkName and ret.zkName is "+element.zkName+' '+ret.zkName)
-            if (element.zkName == ret.zkName) {
-              flag = 1;
-              //console.log("splice ", ret);
-              this.data.splice(index, 1);
-              //console.log("lin", this.data);
-              if (this.data.length == 0) {
-                this.data = new Array();
-                //console.log("lin2", this.data);
-              }
-              //console.log('ret is :',ret);
-              this.data.push(ret);
-              this.data = JSON.parse(JSON.stringify(this.data));
-            }
-          });
-          if (flag == 0) {
-            this.data.push(ret);
-            this.data = JSON.parse(JSON.stringify(this.data));
-          }
-        } else {
-          this.data.push(ret);
-          this.data = JSON.parse(JSON.stringify(this.data));
+        // //console.log("this.data length is "+this.data.length)
+        // if (this.data.length > 0) {
+        //   var flag = 0;
+        //   this.data.forEach((element, index) => {
+        //     //console.log("element.zkName and ret.zkName is "+element.zkName+' '+ret.zkName)
+        //     if (element.zkName == ret.zkName) {
+        //       flag = 1;
+        //       //console.log("splice ", ret);
+        //       this.data.splice(index, 1);
+        //       //console.log("lin", this.data);
+        //       if (this.data.length == 0) {
+        //         this.data = new Array();
+        //         //console.log("lin2", this.data);
+        //       }
+        //       //console.log('ret is :',ret);
+        //       this.data.push(ret);
+        //       this.data = JSON.parse(JSON.stringify(this.data));
+        //     }
+        //   });
+        //   if (flag == 0) {
+        //     this.data.push(ret);
+        //     this.data = JSON.parse(JSON.stringify(this.data));
+        //   }
+        // } else {
+        //   this.data.push(ret);
+        //   this.data = JSON.parse(JSON.stringify(this.data));
+        // }
+        this.data.push(ret);
+        //this.data = JSON.parse(JSON.stringify(this.data));
+        realNum++;
+        if(realNum >= connnectNum){
+          initLoading.close();
         }
       });
       //初始化表格内容
@@ -324,6 +348,7 @@ export default {
             this.tableData.push(newData);
           }
         });
+        this.loading = false;
       }
       //设置加载模式 默认饿加载
       var loadMode = localStorage.getItem("loadMode");

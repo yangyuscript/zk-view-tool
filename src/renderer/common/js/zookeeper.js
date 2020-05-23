@@ -42,26 +42,26 @@ function getTree(zk, lableName, zkName, callback) {
                 return;
             }
             var parentChild = newChild
-            console.log('Children are:', children);
+            //console.log('Children are:', children);
             children.forEach(childPath => {
                 parentChild = newChild
-                //console.log('xixix:', newChild)
+                //console.log('nweChild is: ', newChild)
                 var len = childPath.split('/').length
-                //console.log('hehehe', childPath, len)
+                //console.log('childPath is: ', childPath, len)
                 var templen = 0
                 childPath.split('/').forEach(e => {
                     templen++
                     if (e != null && e != '') {
                         var flag = false
                         var index = 0
-                        //console.log('hahaha:', childPath, e)
+                        //console.log('splited childPath is: ', childPath, e)
                         parentChild.children.forEach((c, i) => {
                             if (c.label == e) {
                                 flag = true
                                 index = i
                             }
                         });
-                        console.log('flag', flag, parentChild.children)
+                        //console.log('flag ', flag, parentChild.children)
                         if (!flag) { //数组不包含该元素
                             console.log('不包含元素', e, childPath)
                             var temp = { label: e, children: [], path: childPath, zkName: zkName }
@@ -217,8 +217,35 @@ function sleep(d) {
     for (var t = Date.now(); Date.now() - t <= d;);
 }
 
+function testZKAccess(callback) {
+    var connects = localStorage.getItem('zkNames')
+    if (connects != null && '' != connects) {
+        if (connects.indexOf('$') == -1) {
+            var z = Zookeeper.createClient(connects, OPTIONS)
+            z.connect();
+            z.on('connected', function () {
+                callback();
+                z.close();
+            });
+        } else {
+            connects.split('$').forEach(element => {
+                console.log("split zk address is ", element)
+                if (element != null && '' != element) {
+                    var zk = Zookeeper.createClient(element, OPTIONS)
+                    zk.connect()
+                    zk.on('connected', function () {
+                        callback();
+                        zk.close();
+                    });
+                }
+            });
+        }
+    }
+}
+
 export default {
     connectZK,
     getNodeData,
-    connectZKByName
+    connectZKByName,
+    testZKAccess
 }
