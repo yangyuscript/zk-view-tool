@@ -243,9 +243,89 @@ function testZKAccess(callback) {
     }
 }
 
+function operateZKNode(operation, zkName, nodePath, newData, callback) {
+    var zk = zkClientMap.get(zkName)
+    if (zk == undefined) {
+        zk = Zookeeper.createClient(zkName, OPTIONS)
+        zkClientMap.set(zkName, zk)
+        zk.connect()
+    } else {
+        if (operation == 'setData') {
+            setNodeData(zk, nodePath, newData, callback);
+        }
+        if (operation == 'deleteNode') {
+            deleteNode(zk, nodePath, callback);
+        }
+        if (operation == 'createNode') {
+            createNode(zk, nodePath, newData, callback);
+        }
+
+    }
+    zk.on('connected', function () {
+        if (operation == 'setData') {
+            setNodeData(zk, nodePath, newData, callback);
+        }
+        if (operation == 'deleteNode') {
+            deleteNode(zk, nodePath, callback);
+        }
+        if (operation == 'createNode') {
+            createNode(zk, nodePath, newData, callback);
+        }
+    });
+}
+
+function setNodeData(zk, nodePath, newData, callback) {
+    var data = newData;
+    var buf = Buffer.from(data);
+    var buf2 = Buffer.allocUnsafe(buf.length);
+    buf2.fill(data, 0);
+
+    zk.setData(nodePath, buf2, -1, function (error, stat) {
+        if (error) {
+            console.log(error.stack);
+            callback("2")
+            return;
+        }
+
+        console.log('Data is set.');
+        callback("1");
+    });
+}
+
+function deleteNode(zk, nodePath, callback) {
+    zk.removeRecursive(nodePath, -1, function (error) {
+        if (error) {
+            console.log(error.stack);
+            callback("2");
+            return;
+        }
+
+        console.log('Nodes removed.');
+        callback("1");
+    });
+}
+
+function createNode(zk, nodePath, nodeValue, callback) {
+    zk.create(
+        nodePath,
+        Buffer.from(nodeValue),
+        function (error, path) {
+            if (error) {
+                console.log(error.stack);
+                callback("2")
+                return;
+            }
+
+            console.log('Node: %s is created.', path);
+            callback("1")
+        }
+    );
+}
+
 export default {
     connectZK,
     getNodeData,
     connectZKByName,
-    testZKAccess
+    testZKAccess,
+    operateZKNode
 }
