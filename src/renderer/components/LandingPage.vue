@@ -28,11 +28,11 @@
           <el-dropdown trigger="click" size="mini">
             <i class="el-icon-setting" style="margin: 8px"></i>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click="dialogVisible = true">
-                <span>新增zk</span>
+              <el-dropdown-item>
+                <div @click="dialogVisible = true" style="width:100%;height:100%;"><span>新增zk</span></div>
               </el-dropdown-item>
-              <el-dropdown-item @click="dialogVisible2 = true">
-                <span>加载模式</span>
+              <el-dropdown-item>
+                <div @click="dialogVisible2 = true" style="width:100%;height:100%;"><span>加载模式</span></div>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
