@@ -449,34 +449,34 @@ export default {
       }, 2000);
       var realNum = 0;
       zk.connectZK(ret => {
-        // //console.log("this.data length is "+this.data.length)
-        // if (this.data.length > 0) {
-        //   var flag = 0;
-        //   this.data.forEach((element, index) => {
-        //     //console.log("element.zkName and ret.zkName is "+element.zkName+' '+ret.zkName)
-        //     if (element.zkName == ret.zkName) {
-        //       flag = 1;
-        //       //console.log("splice ", ret);
-        //       this.data.splice(index, 1);
-        //       //console.log("lin", this.data);
-        //       if (this.data.length == 0) {
-        //         this.data = new Array();
-        //         //console.log("lin2", this.data);
-        //       }
-        //       //console.log('ret is :',ret);
-        //       this.data.push(ret);
-        //       this.data = JSON.parse(JSON.stringify(this.data));
-        //     }
-        //   });
-        //   if (flag == 0) {
-        //     this.data.push(ret);
-        //     this.data = JSON.parse(JSON.stringify(this.data));
-        //   }
-        // } else {
-        //   this.data.push(ret);
-        //   this.data = JSON.parse(JSON.stringify(this.data));
-        // }
-        this.data.push(ret);
+        //console.log("this.data length is "+this.data.length)
+        if (this.data.length > 0) {
+          var flag = 0;
+          this.data.forEach((element, index) => {
+            console.log("element.zkName and ret.zkName is "+element.zkName+' '+ret.zkName)
+            if (element.zkName == ret.zkName) {
+              flag = 1;
+              //console.log("splice ", ret);
+              this.data.splice(index, 1);
+              //console.log("lin", this.data);
+              if (this.data.length == 0) {
+                this.data = new Array();
+                //console.log("lin2", this.data);
+              }
+              //console.log('ret is :',ret);
+              this.data.push(ret);
+              this.data = JSON.parse(JSON.stringify(this.data));
+            }
+          });
+          if (flag == 0) {
+            this.data.push(ret);
+            this.data = JSON.parse(JSON.stringify(this.data));
+          }
+        } else {
+          this.data.push(ret);
+          this.data = JSON.parse(JSON.stringify(this.data));
+        }
+        //this.data.push(ret);
         //this.data = JSON.parse(JSON.stringify(this.data));
         realNum++;
         if (realNum >= connnectNum) {
